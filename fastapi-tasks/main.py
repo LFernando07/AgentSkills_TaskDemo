@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 
 app = FastAPI()
+router = APIRouter(prefix="/api")
 
 # Data interna simulada
 tasks = [
@@ -9,12 +10,12 @@ tasks = [
 ]
 
 # Obtener todas las tareas
-@app.get("/tasks")
+@router.get("/tasks")
 def get_tasks():
     return tasks
 
 # Obtener una tarea por ID
-@app.get("/tasks/{task_id}")
+@router.get("/tasks/{task_id}")
 def get_task(task_id: int):
     for task in tasks:
         if task["id"] == task_id:
@@ -22,14 +23,14 @@ def get_task(task_id: int):
     raise HTTPException(status_code=404, detail="Task not found")
 
 # Crear nueva tarea
-@app.post("/tasks")
+@router.post("/tasks")
 def create_task(title: str):
     new_task = {"id": len(tasks) + 1, "title": title, "done": False}
     tasks.append(new_task)
     return new_task
 
 # Actualizar tarea
-@app.put("/tasks/{task_id}")
+@router.put("/tasks/{task_id}")
 def update_task(task_id: int, title: str = None, done: bool = None):
     for task in tasks:
         if task["id"] == task_id:
@@ -41,10 +42,13 @@ def update_task(task_id: int, title: str = None, done: bool = None):
     raise HTTPException(status_code=404, detail="Task not found")
 
 # Eliminar tarea
-@app.delete("/tasks/{task_id}")
+@router.delete("/tasks/{task_id}")
 def delete_task(task_id: int):
     for task in tasks:
         if task["id"] == task_id:
             tasks.remove(task)
             return {"message": "Task deleted"}
     raise HTTPException(status_code=404, detail="Task not found")
+
+# Registrar el router en la app
+app.include_router(router)
